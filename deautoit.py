@@ -7,7 +7,6 @@ import lznt1
 import argparse
 import pefile
 
-
 def extract_repeating_pattern(s):
     n = len(s)
     z = [0]*n
@@ -38,14 +37,11 @@ def xor_artefact(name, enc_exe):
     with open(name+"-dec.exe", "wb") as stage2:
         stage2.write(enc_exe)
     if isPe(name+"-dec.exe"):
-        print("Found a valid PE File: Saved As Stage2.exe")
+        print(f"Found a valid PE File: Saved As {name}-dec.exe")
         return True
     else:
         os.remove(name+"-dec.exe")
         return False
-
-def parse_shellcode(content):
-    pass
 
 
 
@@ -57,12 +53,33 @@ def rc4_decrypt(ciphertext, key):
 def decompress_lznt1(data):
     return lznt1.decompress(data)
 
+def find_encryption_key(text, real_name):
+    pattern = rf'Binary\s*\(\s*\${re.escape(real_name)}\s*\)\s*,\s*Binary\s*\(\s*"([^"]+)"\s*\)'
+    match = re.search(pattern, text)
+    if match:
+        return match.group(1)
+    return None
+
+def find_encryption_key_from_script(file, real_name):
+    text = open(file, "r").read()
+    pattern = rf'Binary\s*\(\s*\${re.escape(real_name)}\s*\)\s*,\s*Binary\s*\(\s*"([^"]+)"\s*\)'
+    match = re.search(pattern, text)
+    if match:
+        return match.group(1)
+    return None
+
 def script_analyze(content):
+        try:
+            text_file = content.decode()
+            content = content.decode()
+        except:
+            text_file = content
         pattern = re.compile(r'".{1000,}"')
         if isinstance(content, str):
             content = content.replace("\t","").split("\r\n")
         else:
             content = content.decode().replace("\t","").split("\r\n")
+
         previous_name = ""
         current_name = ""
         next_name = ""
@@ -89,12 +106,33 @@ def script_analyze(content):
             if name == variable_name:
                 shellcode_part = matched_lines[i].split(" ")[-1].replace("\"", "")
                 shellcode += shellcode_part
-                    
+
         if shellcode.startswith("0x"):
             shellcode = shellcode[2:]
-        print("Found a long hex.\n")
 
-        # Check decryption and decompression after matching the function doing it to get the key
+        b_shellcode = bytearray.fromhex(shellcode)
+
+        b_key = find_encryption_key(text_file, variable_name.lstrip("$"))
+        if b_key:
+            b_key = b_key.encode()
+            dec_shellcode = rc4_decrypt(b_shellcode, b_key)
+
+            file = open("stage2-decrypted.exe", "wb").write(dec_shellcode)
+            if isPe("stage2-decrypted.exe"):
+                print("Found a valid PE: Saved as stage2-decrypted.exe")
+            else:
+                os.remove("stage2-decrypted.exe")
+            
+            
+            decompressed_shellcode = decompress_lznt1(dec_shellcode)
+
+            file = open("stage2-decompressed.exe", "wb").write(decompressed_shellcode)
+            if isPe("stage2-decompressed.exe"):
+                print("Found a valid PE: Saved as stage2-decompressed.exe")
+            else:
+                os.remove("stage2-decompressed.exe")
+        
+
         
 def main():
     parser = argparse.ArgumentParser(description='A tool to automate extraction of stage 2 of some cases of malware using AutoIt.')
@@ -127,9 +165,8 @@ def main():
             script_analyze(content_list[0][1])
 
     if args.script:
-        content = open(args.script, "r").read()
+        content = open(args.script, "rb").read()
         script_analyze(content)
 
 if __name__ == "__main__":
     main()
-   
