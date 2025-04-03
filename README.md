@@ -23,5 +23,4 @@ This samples uses AutoIt de deliver the next stage, the tool automatically extra
 ## 2-Lumma Stealer : 
  #### sha256:05a0e74cac490fe2e0e36aac9f1e439945ee024b08cfea7e779e358599a71398
 This samples uses an AutoIt script at an advanced stage, the tool automatically extracts the next stage
-
 ![sample_script](images/sample_script.png)
