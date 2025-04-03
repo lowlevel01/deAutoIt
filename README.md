@@ -14,13 +14,13 @@ options:
   ```
 
 # Real World Examples:
-### - probably Purelog Stealer : 
+## 1- probably Purelog Stealer : 
  #### sha256:1c78b60b0ea5b53fd95bc16b6d9a4421d8e9dc0e2e1b0eb4bcb9951afae45774
 
 This samples uses AutoIt de deliver the next stage, the tool automatically extracts the next stage.
 ![sample_exe](images/sample_exe.png)
 
-### -Lumma Stealer : 
+## 2-Lumma Stealer : 
  #### sha256:05a0e74cac490fe2e0e36aac9f1e439945ee024b08cfea7e779e358599a71398
 This samples uses an AutoIt script at an advanced stage, the tool automatically extracts the next stage
 
